@@ -7,10 +7,9 @@ services:
       - "8000:8000"
     environment:
       - BOARDGAME_DB_MODE=sqlite
-      - BOARDGAME_DATABASE_URL_SQLITE=sqlite:///data/boardgames.db
+      - BOARDGAME_DATABASE_URL_SQLITE=sqlite:///./data/boardgames.db
     volumes:
-      - boardgame_data:/app/data
-
+      - ./data:/app/data
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 10s
@@ -28,6 +27,3 @@ services:
     depends_on:
       backend:
         condition: service_healthy
-
-volumes:
-  boardgame_data:
