@@ -1,0 +1,33 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - BOARDGAME_DB_MODE=sqlite
+      - BOARDGAME_DATABASE_URL_SQLITE=sqlite:///data/boardgames.db
+    volumes:
+      - boardgame_data:/app/data
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "8501:8501"
+    environment:
+      - BOARDGAME_API_BASE_URL=http://backend:8000
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  boardgame_data:

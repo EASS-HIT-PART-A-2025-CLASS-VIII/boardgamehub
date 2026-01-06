@@ -1,0 +1,20 @@
+[project]
+name = "boardgamehub"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.127.0",
+    "httpx>=0.28.1",
+    "pandas>=2.3.3",
+    "pydantic-settings>=2.12.0",
+    "pytest>=9.0.2",
+    "sqlmodel>=0.0.29",
+    "streamlit>=1.52.2",
+    "typer>=0.21.0",
+    "uvicorn>=0.40.0",
+]
+
+[tool.setuptools]
+packages = ["app", "frontend"]
