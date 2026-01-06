@@ -73,6 +73,7 @@ BoardGameHub/
 
 ```bash
 uv sync
+uv pip install -e .
 ```
 
 ### Run the backend
@@ -94,6 +95,18 @@ uv run streamlit run frontend/dashboard.py
 
 ---
 
+## 🌱 Database Seeding (CLI)
+
+### Seed the database (one-time)
+
+Populate the database with sample board games:
+
+```bash
+run python -m cli seed
+```
+
+---
+
 ## 🧪 Running Tests
 
 ```bash
@@ -112,7 +125,8 @@ docker compose up --build
 
 Services:
 
-* Backend → [http://localhost:8000](http://localhost:8000)
+* API docs → [http://localhost:8000/docs](http://localhost:8000/docs)
+* Health check → [http://localhost:8000/health](http://localhost:8000/health)
 * Frontend → [http://localhost:8501](http://localhost:8501)
 
 Check container health:
