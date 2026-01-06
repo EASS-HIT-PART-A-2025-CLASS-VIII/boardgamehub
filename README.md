@@ -102,7 +102,7 @@ uv run streamlit run frontend/dashboard.py
 Populate the database with sample board games:
 
 ```bash
-run python -m cli seed
+uv run python -m cli seed
 ```
 
 ---
@@ -112,6 +112,8 @@ run python -m cli seed
 ```bash
 uv run pytest
 ```
+**Expected output:**
+8 passed in X.XXs
 
 ---
 
@@ -140,5 +142,8 @@ Expected backend status:
 ```
 (healthy)
 ```
-
+### Close down Docker:
+```bash
+docker compose down
+```
 ---

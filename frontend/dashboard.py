@@ -1,9 +1,9 @@
 import math
-import pandas as pd  
+
+import pandas as pd
 import streamlit as st
 
-
-from frontend.client import ( 
+from frontend.client import (
     create_boardgame,
     delete_boardgame,
     list_boardgames,
@@ -24,6 +24,43 @@ def cached_games() -> list[dict]:
 
 def normalize_name(s: str) -> str:
     return (s or "").strip().lower()
+
+
+# ---------- Create-form state helpers ----------
+def init_create_form_state() -> None:
+    defaults = {
+        "create_name": "",
+        "create_designer": "",
+        "create_year_published": 0,
+        "create_min_players": 0,
+        "create_max_players": 0,
+        "create_play_time_min": 0,
+        "create_complexity": 0.0,
+        "create_rating": 0.0,
+        "reset_create_form": False,  # ✅ reset flag
+    }
+    for k, v in defaults.items():
+        if k not in st.session_state:
+            st.session_state[k] = v
+
+
+def apply_create_form_reset_if_needed() -> None:
+    """
+    Important:
+    Streamlit does NOT allow modifying st.session_state[key] for a widget key
+    after that widget is instantiated in the same run.
+    So we reset values BEFORE creating the form widgets (on the next rerun).
+    """
+    if st.session_state.get("reset_create_form"):
+        st.session_state["create_name"] = ""
+        st.session_state["create_designer"] = ""
+        st.session_state["create_year_published"] = 0
+        st.session_state["create_min_players"] = 0
+        st.session_state["create_max_players"] = 0
+        st.session_state["create_play_time_min"] = 0
+        st.session_state["create_complexity"] = 0.0
+        st.session_state["create_rating"] = 0.0
+        st.session_state["reset_create_form"] = False
 
 
 col_left, col_right = st.columns([2, 1])
@@ -116,21 +153,44 @@ with col_right:
     # ---- Add ----
     st.subheader("➕ Add game")
 
+    # ✅ init + reset BEFORE widgets are created
+    init_create_form_state()
+    apply_create_form_reset_if_needed()
+
     with st.form("create_form"):
-        name = st.text_input("Name*", value="")
-        designer = st.text_input("Designer", value="")
+        name = st.text_input("Name*", key="create_name")
+        designer = st.text_input("Designer", key="create_designer")
 
-        year_published = st.number_input("Year published", min_value=0, max_value=2100, value=0)
-        min_players = st.number_input("Min players", min_value=0, max_value=20, value=0)
-        max_players = st.number_input("Max players", min_value=0, max_value=20, value=0)
-        play_time_min = st.number_input("Play time (min)", min_value=0, max_value=600, value=0)
-        complexity = st.number_input("Complexity", min_value=0.0, max_value=5.0, value=0.0, step=0.1)
-        rating = st.number_input("Rating", min_value=0.0, max_value=10.0, value=0.0, step=0.1)
+        year_published = st.number_input(
+            "Year published", min_value=0, max_value=2100, key="create_year_published"
+        )
+        min_players = st.number_input(
+            "Min players", min_value=0, max_value=20, key="create_min_players"
+        )
+        max_players = st.number_input(
+            "Max players", min_value=0, max_value=20, key="create_max_players"
+        )
+        play_time_min = st.number_input(
+            "Play time (min)", min_value=0, max_value=600, key="create_play_time_min"
+        )
+        complexity = st.number_input(
+            "Complexity", min_value=0.0, max_value=5.0, step=0.1, key="create_complexity"
+        )
+        rating = st.number_input(
+            "Rating", min_value=0.0, max_value=10.0, step=0.1, key="create_rating"
+        )
 
-        submitted = st.form_submit_button("Create")
+        c1, c2 = st.columns(2)
+        submitted = c1.form_submit_button("Create")
+        cleared = c2.form_submit_button("Clear form")
+
+    # ✅ Clear form: set a flag and rerun (reset happens BEFORE widget instantiation next run)
+    if cleared:
+        st.session_state["reset_create_form"] = True
+        st.rerun()
 
     if submitted:
-        name_clean = name.strip()
+        name_clean = (name or "").strip()
 
         if not name_clean:
             st.error("Name is required.")
@@ -144,7 +204,7 @@ with col_right:
             else:
                 payload = {
                     "name": name_clean,
-                    "designer": designer.strip() or None,
+                    "designer": (designer or "").strip() or None,
                     "year_published": int(year_published),
                     "min_players": int(min_players),
                     "max_players": int(max_players),
@@ -155,6 +215,10 @@ with col_right:
                 try:
                     created = create_boardgame(payload)
                     cached_games.clear()
+
+                    # ✅ Reset after success (flag + rerun)
+                    st.session_state["reset_create_form"] = True
+
                     st.success(f"Created: {created.get('name')}")
                     st.rerun()
                 except RuntimeError as e:
@@ -219,7 +283,7 @@ with col_right:
             updated = st.form_submit_button("Update")
 
         if updated:
-            new_name = edit_name.strip()
+            new_name = (edit_name or "").strip()
 
             if not new_name:
                 st.error("Name is required.")
@@ -238,7 +302,7 @@ with col_right:
                 else:
                     payload = {
                         "name": new_name,
-                        "designer": edit_designer.strip() or None,
+                        "designer": (edit_designer or "").strip() or None,
                         "year_published": int(edit_year),
                         "min_players": int(edit_min_p),
                         "max_players": int(edit_max_p),
