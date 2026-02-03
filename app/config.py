@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     database_url_sqlite: str = "sqlite:///data/boardgames.db"
     database_url_memory: str = "sqlite://"
     database_echo: bool = False
+    redis_url: str = "redis://localhost:6379/0"
 
     @property
     def database_url(self) -> str:

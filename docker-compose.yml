@@ -7,10 +7,13 @@ services:
       - "8000:8000"
     environment:
       - BOARDGAME_DB_MODE=sqlite
-      - BOARDGAME_DATABASE_URL_SQLITE=sqlite:///data/boardgames.db
+      - BOARDGAME_DATABASE_URL_SQLITE=sqlite:///./data/boardgames.db
+      - BOARDGAME_REDIS_URL=redis://redis:6379/0
     volumes:
-      - boardgame_data:/app/data
-
+      - ./data:/app/data
+    depends_on:
+      redis:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 10s
@@ -29,5 +32,12 @@ services:
       backend:
         condition: service_healthy
 
-volumes:
-  boardgame_data:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
