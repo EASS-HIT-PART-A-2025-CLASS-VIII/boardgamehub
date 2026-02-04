@@ -4,9 +4,9 @@ from starlette import status
 from starlette.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
-
 from app.database import create_db_and_tables, engine
 from app.routers.boardgames import router as boardgames_router
+from app.routers.stats import router as stats_router
 
 app = FastAPI(title="BoardGameHub API")
 app.add_middleware(
@@ -39,3 +39,4 @@ def health():
 
 
 app.include_router(boardgames_router)
+app.include_router(stats_router)

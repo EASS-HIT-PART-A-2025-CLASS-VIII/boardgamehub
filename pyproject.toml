@@ -8,8 +8,10 @@ dependencies = [
     "fastapi>=0.127.0",
     "httpx>=0.28.1",
     "pandas>=2.3.3",
+    "passlib[bcrypt]>=1.7.4",
     "pydantic-settings>=2.12.0",
     "pytest>=9.0.2",
+    "python-jose[cryptography]>=3.5.0",
     "redis>=7.1.0",
     "sqlmodel>=0.0.29",
     "streamlit>=1.52.2",
@@ -19,3 +21,9 @@ dependencies = [
 
 [tool.setuptools]
 packages = ["app", "frontend"]
+
+[dependency-groups]
+dev = [
+    "anyio>=4.12.0",
+    "pytest>=9.0.2",
+]
