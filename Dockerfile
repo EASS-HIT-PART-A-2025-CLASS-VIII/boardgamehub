@@ -6,17 +6,17 @@ WORKDIR /app
 
 # Install curl (needed for Docker healthcheck) + clean apt cache
 RUN apt-get update \
- && apt-get install -y --no-install-recommends curl \
- && rm -rf /var/lib/apt/lists/*
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install uv (fast Python package manager)
 RUN pip install --no-cache-dir uv
 
 # Copy dependency files first (better Docker layer caching)
-COPY pyproject.toml uv.lock ./
+COPY pyproject.toml .python-version ./
 
 # Install runtime dependencies (no dev deps)
-RUN uv sync --frozen --no-dev
+RUN uv sync --no-dev
 
 # Copy the rest of the project
 COPY . .
