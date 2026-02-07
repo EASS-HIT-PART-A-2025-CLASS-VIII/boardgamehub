@@ -41,3 +41,24 @@ services:
       interval: 10s
       timeout: 3s
       retries: 5
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: uv run python scripts/worker.py
+    environment:
+      - BOARDGAME_API_BASE_URL=http://backend:8000
+      - BOARDGAME_ADMIN_USERNAME=admin
+      - BOARDGAME_ADMIN_PASSWORD=classroom
+      - BOARDGAME_WORKER_INTERVAL_SECONDS=60
+      - BOARDGAME_REDIS_URL=redis://redis:6379/0
+      - BOARDGAME_DB_MODE=sqlite
+      - BOARDGAME_DATABASE_URL_SQLITE=sqlite:///./data/boardgames.db
+    depends_on:
+      backend:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./data:/app/data
