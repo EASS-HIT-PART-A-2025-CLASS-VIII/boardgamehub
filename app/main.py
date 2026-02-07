@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.database import create_db_and_tables, engine
 from app.routers.boardgames import router as boardgames_router
 from app.routers.stats import router as stats_router
+from app.routers.auth import router as auth_router
 
 app = FastAPI(title="BoardGameHub API")
 app.add_middleware(
@@ -40,3 +41,4 @@ def health():
 
 app.include_router(boardgames_router)
 app.include_router(stats_router)
+app.include_router(auth_router)

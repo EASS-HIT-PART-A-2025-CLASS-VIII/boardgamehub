@@ -7,6 +7,14 @@ class Settings(BaseSettings):
     database_url_memory: str = "sqlite://"
     database_echo: bool = False
     redis_url: str = "redis://localhost:6379/0"
+     # ===== Security / JWT =====
+    jwt_secret_key: str = "CHANGE_ME"          
+    jwt_algorithm: str = "HS256"
+    jwt_access_token_minutes: int = 30
+
+    admin_username: str = "admin"
+    admin_password_hash: str = ""              
+
 
     @property
     def database_url(self) -> str:

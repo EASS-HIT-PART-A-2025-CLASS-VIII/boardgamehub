@@ -8,6 +8,7 @@ from app.database import get_session
 from app import crud
 from app.redis_client import get_redis_client
 from app.schemas import StatsSnapshot, TopRatedItem
+from app.security import require_role   
 
 router = APIRouter(tags=["Stats"])
 
@@ -64,6 +65,7 @@ async def refresh_stats(
     session: Session = Depends(get_session),
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
     trace_id: str | None = Header(default=None, alias="X-Trace-Id"),
+    _claims=Depends(require_role("admin")),   
 ):
     if not idempotency_key:
         raise HTTPException(status_code=400, detail="Missing Idempotency-Key header")
@@ -71,7 +73,6 @@ async def refresh_stats(
     r = get_redis_client()
     idem_key = f"{IDEMPOTENCY_PREFIX}{idempotency_key}"
 
-    # אם כבר עשינו refresh עם אותו מפתח - לא עושים שוב
     if await r.exists(idem_key):
         return {"status": "already_done", "idempotency_key": idempotency_key}
 
@@ -79,7 +80,6 @@ async def refresh_stats(
     snapshot = _compute_snapshot(games)
 
     await r.set(STATS_SNAPSHOT_KEY, json.dumps(snapshot.model_dump(mode="json")))
-    # שמירת idempotency ל-48 שעות (אפשר לשנות)
     await r.setex(idem_key, 60 * 60 * 48, "1")
 
     return {
