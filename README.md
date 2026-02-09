@@ -23,6 +23,9 @@ It supports **Dockerized deployment**, **secure JWT authentication**, **advanced
 
 ## ✨ Key Features
 
+- **"The Board Room" Dashboard**:
+    - **Visual Analytics**: Visual Analytics Chart (Rating vs Complexity).
+    - **KPI Metrics**: Real-time stats for Total Games, Avg Rating, and Playtime.
 - **Secure Authentication**: Role-based access control using JWT tokens and Bcrypt password hashing.
 - **Advanced Data Retrieval**: 
     - **Pagination**: Efficiently browse large datasets (`?page=1&page_size=10`).
