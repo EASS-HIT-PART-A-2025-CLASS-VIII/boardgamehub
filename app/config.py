@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     jwt_secret_key: str = "CHANGE_ME"          
     jwt_algorithm: str = "HS256"
     jwt_access_token_minutes: int = 30
+    jwt_issuer: str = "boardgamehub"
+    jwt_audience: str = "boardgamehub-users"
 
     admin_username: str = "admin"
     admin_password_hash: str = ""              

@@ -1,0 +1,12 @@
+site_name: BoardGameHub API
+theme:
+  name: material
+nav:
+  - Home: index.md
+  - API Reference: api.md
+  - Service Contract: service-contract.md
+  - Security (EX3):
+      - Notes: EX3-notes.md
+      - Checklist: security-checklist.md
+  - Release Checklist: release-checklist.md
+  - FastMCP Tool: mcp.md

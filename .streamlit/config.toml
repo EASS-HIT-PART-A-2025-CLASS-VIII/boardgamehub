@@ -1,0 +1,6 @@
+[theme]
+primaryColor = "#E64D3D"   # Vibrant Red
+backgroundColor = "#121212" # Deep Black
+secondaryBackgroundColor = "#1E1E1E" # Dark Grey for cards/sidebars
+textColor = "#FFFFFF"       # White text for contrast
+font = "sans serif"

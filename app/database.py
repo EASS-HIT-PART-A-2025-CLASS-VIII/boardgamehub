@@ -10,7 +10,7 @@ if settings.database_url.startswith("sqlite:///"):
 
 DATABASE_URL = settings.database_url
 
-engine_kwargs = {
+engine_kwargs: dict[str, object] = {
     "echo": settings.database_echo,
 }
 

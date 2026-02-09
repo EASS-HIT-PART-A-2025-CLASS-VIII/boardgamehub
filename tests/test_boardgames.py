@@ -59,7 +59,8 @@ def test_list_boardgames(client: TestClient):
     res = client.get("/boardgames/")
     assert res.status_code == 200
 
-    items = res.json()
+    data = res.json()
+    items = data["items"]
     assert isinstance(items, list)
     assert len(items) == 2
     assert {x["name"] for x in items} == {"Catan", "7 Wonders"}

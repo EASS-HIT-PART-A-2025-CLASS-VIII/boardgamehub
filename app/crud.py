@@ -4,8 +4,12 @@ from sqlalchemy import func
 from app.models import BoardGame
 
 
-def list_boardgames(session: Session) -> list[BoardGame]:
-    return session.exec(select(BoardGame)).all()
+def list_boardgames(session: Session, offset: int = 0, limit: int = 100) -> tuple[list[BoardGame], int]:
+    count_query = select(func.count()).select_from(BoardGame)
+    total = session.exec(count_query).one()
+    query = select(BoardGame).order_by(BoardGame.id).offset(offset).limit(limit)  # type: ignore
+    items = list(session.exec(query).all())
+    return items, total
 
 
 def get_boardgame(session: Session, boardgame_id: int) -> BoardGame | None:

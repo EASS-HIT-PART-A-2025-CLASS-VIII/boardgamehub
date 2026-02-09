@@ -10,68 +10,98 @@ from frontend.client import (
     update_boardgame,
 )
 
-st.set_page_config(page_title="BoardGameHub Dashboard", layout="wide")
-st.title("🎲 BoardGameHub Dashboard")
-st.caption("Streamlit UI that talks to FastAPI via httpx")
+st.set_page_config(page_title="The Board Room", layout="wide", page_icon="🎲")
+st.title("🎲 The Board Room")
+st.markdown("Your curated collection of tabletop experiences.")
 
-PAGE_SIZE = 15
+PAGE_SIZE = 100
 
 
 @st.cache_data(ttl=15)
-def cached_games() -> list[dict]:
-    return list_boardgames()
+def cached_games(page: int, page_size: int) -> dict:
+    return list_boardgames(page=page, page_size=page_size)
 
 
 def normalize_name(s: str) -> str:
     return (s or "").strip().lower()
 
 
+# ================= TOP: METRICS & CHARTS =================
+if "page" not in st.session_state:
+    st.session_state.page = 1
+
+try:
+    # Fetch data (up to 100 items for scrolling view)
+    data = cached_games(1, PAGE_SIZE)
+    games = data.get("items", [])
+    total = data.get("total", 0)
+except RuntimeError as e:
+    st.error(f"API error: {e}")
+    st.stop()
+
+if games:
+    df = pd.DataFrame(games)
+    
+    # 1. Key Metrics Row
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("Total Games", total)
+    m2.metric("Avg Rating", f"{df['rating'].mean():.1f}")
+    m3.metric("Avg Complexity", f"{df['complexity'].mean():.1f}")
+    m4.metric("Avg Playtime", f"{df['play_time_min'].mean():.0f} min")
+    
+    import altair as alt
+
+    # 2. Visualizations
+    st.caption("📈 Rating vs Complexity")
+    
+    chart = alt.Chart(df).mark_circle(opacity=0.9, stroke="white", strokeWidth=1).encode(
+        x=alt.X("rating", scale=alt.Scale(domain=[0, 10], clamp=True), title="Rating (0-10)"),
+        y=alt.Y("complexity", scale=alt.Scale(domain=[0, 5], clamp=True), title="Complexity (0-5)"),
+        size=alt.Size("play_time_min", title="Playtime (min)", scale=alt.Scale(range=[300, 1500]), legend={'format': 'd'}),
+        color=alt.Color("max_players", title="Max Players", scale=alt.Scale(scheme="orangered")),
+        tooltip=["name", "designer", "rating", "complexity", "play_time_min", "max_players"]
+    )
+
+    st.altair_chart(chart, use_container_width=True)
+
+st.markdown("---")
+
 col_left, col_right = st.columns([2, 1])
 
 # ================= LEFT: TABLE + DELETE =================
 with col_left:
-    st.subheader("📋 Games")
-
-    try:
-        games = cached_games()
-    except RuntimeError as e:
-        st.error(f"API error: {e}")
-        st.stop()
-
-    total = len(games)
-    st.metric("Total games", total)
+    st.subheader("📋 Games List")
 
     if games:
-        df = pd.DataFrame(games)
+        # Search filter
+        search = st.text_input("🔍 Search", placeholder="Type name, designer...", label_visibility="collapsed")
+        if search:
+            df = df[
+                df["name"].str.contains(search, case=False) | 
+                df["designer"].str.contains(search, case=False, na=False)
+            ]
 
-        # ---- Pagination ----
-        total_pages = max(1, math.ceil(total / PAGE_SIZE))
-        if "page" not in st.session_state:
-            st.session_state.page = 1
-
-        nav = st.columns([1, 2, 1])
-        with nav[0]:
-            if st.button("⬅ Prev", disabled=(st.session_state.page <= 1)):
-                st.session_state.page -= 1
-                st.rerun()
-
-        with nav[1]:
-            st.write(f"Page **{st.session_state.page}** / **{total_pages}**")
-
-        with nav[2]:
-            if st.button("Next ➡", disabled=(st.session_state.page >= total_pages)):
-                st.session_state.page += 1
-                st.rerun()
-
-        start = (st.session_state.page - 1) * PAGE_SIZE
-        end = start + PAGE_SIZE
-        page_df = df.iloc[start:end]
-
-        st.dataframe(page_df, use_container_width=True)
+        # Polished Data Table
+        st.dataframe(
+            df,
+            use_container_width=True,
+            hide_index=True,
+            height=600,  # Taller table for scrolling
+            column_order=["name", "rating", "year_published", "min_players", "max_players", "complexity", "play_time_min", "designer"],
+            column_config={
+                "name": st.column_config.TextColumn("Game Name", width="medium"),
+                "rating": st.column_config.ProgressColumn(
+                    "Rating", help="Score 0-10", min_value=0, max_value=10, format="%.1f"
+                ),
+                "year_published": st.column_config.NumberColumn("Year", format="%d"),
+                "complexity": st.column_config.NumberColumn("Complexity", format="%.1f"),
+                "play_time_min": st.column_config.NumberColumn("Time", format="%d m"),
+            }
+        )
 
         # ---- Delete ----
-        st.markdown("---")
-        st.subheader("🗑️ Delete")
+        with st.expander("🗑️ Dangerous Zone (Delete Games)"):
+            st.warning("Deleting a game is permanent.")
 
         selected_game = st.selectbox(
             "Select a game to delete",
@@ -108,7 +138,7 @@ with col_left:
                     st.error(str(e))
 
     else:
-        st.info("No games yet. Add one from the form →")
+        st.info("No games found. Add some from the right sidebar! 👉")
 
 
 # ================= RIGHT: ADD + EDIT =================
@@ -116,16 +146,21 @@ with col_right:
     # ---- Add ----
     st.subheader("➕ Add game")
 
-    with st.form("create_form"):
-        name = st.text_input("Name*", value="")
-        designer = st.text_input("Designer", value="")
+    with st.form("create_form", clear_on_submit=True):
+        name = st.text_input("Name*")
+        designer = st.text_input("Designer")
 
-        year_published = st.number_input("Year published", min_value=0, max_value=2100, value=0)
-        min_players = st.number_input("Min players", min_value=0, max_value=20, value=0)
-        max_players = st.number_input("Max players", min_value=0, max_value=20, value=0)
-        play_time_min = st.number_input("Play time (min)", min_value=0, max_value=600, value=0)
-        complexity = st.number_input("Complexity", min_value=0.0, max_value=5.0, value=0.0, step=0.1)
-        rating = st.number_input("Rating", min_value=0.0, max_value=10.0, value=0.0, step=0.1)
+        c1, c2 = st.columns(2)
+        with c1: year_published = st.number_input("Year published", min_value=0, max_value=2100, value=2023)
+        with c2: play_time_min = st.number_input("Play time (min)", min_value=0, max_value=600, value=30)
+
+        c3, c4 = st.columns(2)
+        with c3: min_players = st.number_input("Min players", min_value=0, max_value=20, value=2)
+        with c4: max_players = st.number_input("Max players", min_value=0, max_value=20, value=4)
+
+        c5, c6 = st.columns(2)
+        with c5: complexity = st.number_input("Complexity", min_value=0.0, max_value=5.0, value=2.0, step=0.1)
+        with c6: rating = st.number_input("Rating", min_value=0.0, max_value=10.0, value=5.0, step=0.1)
 
         submitted = st.form_submit_button("Create")
 
@@ -177,44 +212,37 @@ with col_right:
             edit_name = st.text_input("Name*", value=game_to_edit.get("name", ""))
             edit_designer = st.text_input("Designer", value=game_to_edit.get("designer") or "")
 
-            edit_year = st.number_input(
-                "Year published",
-                min_value=0,
-                max_value=2100,
-                value=int(game_to_edit.get("year_published", 0)),
-            )
-            edit_min_p = st.number_input(
-                "Min players",
-                min_value=0,
-                max_value=20,
-                value=int(game_to_edit.get("min_players", 0)),
-            )
-            edit_max_p = st.number_input(
-                "Max players",
-                min_value=0,
-                max_value=20,
-                value=int(game_to_edit.get("max_players", 0)),
-            )
-            edit_time = st.number_input(
-                "Play time (min)",
-                min_value=0,
-                max_value=600,
-                value=int(game_to_edit.get("play_time_min", 0)),
-            )
-            edit_complexity = st.number_input(
-                "Complexity",
-                min_value=0.0,
-                max_value=5.0,
-                value=float(game_to_edit.get("complexity", 0.0)),
-                step=0.1,
-            )
-            edit_rating = st.number_input(
-                "Rating",
-                min_value=0.0,
-                max_value=10.0,
-                value=float(game_to_edit.get("rating", 0.0)),
-                step=0.1,
-            )
+            c1, c2 = st.columns(2)
+            with c1:
+                edit_year = st.number_input(
+                    "Year published", min_value=0, max_value=2100, value=int(game_to_edit.get("year_published", 0))
+                )
+            with c2:
+                edit_time = st.number_input(
+                    "Play time (min)", min_value=0, max_value=600, value=int(game_to_edit.get("play_time_min", 0))
+                )
+
+            c3, c4 = st.columns(2)
+            with c3:
+                edit_min_p = st.number_input(
+                    "Min players", min_value=0, max_value=20, value=int(game_to_edit.get("min_players", 0))
+                )
+            with c4:
+                edit_max_p = st.number_input(
+                    "Max players", min_value=0, max_value=20, value=int(game_to_edit.get("max_players", 0))
+                )
+
+            c5, c6 = st.columns(2)
+            with c5:
+                edit_complexity = st.number_input(
+                    "Complexity", min_value=0.0, max_value=5.0, step=0.1,
+                    value=float(game_to_edit.get("complexity", 0.0))
+                )
+            with c6:
+                edit_rating = st.number_input(
+                    "Rating", min_value=0.0, max_value=10.0, step=0.1,
+                    value=float(game_to_edit.get("rating", 0.0))
+                )
 
             updated = st.form_submit_button("Update")
 
