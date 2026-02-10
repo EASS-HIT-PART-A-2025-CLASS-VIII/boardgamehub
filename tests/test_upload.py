@@ -3,7 +3,7 @@ import pytest
 from httpx import AsyncClient
 
 @pytest.mark.anyio
-async def test_upload_csv(async_client: AsyncClient, admin_token_headers: dict[str, str] | None = None) -> None:
+async def test_upload_csv(async_client: AsyncClient, admin_token_headers: dict[str, str]) -> None:
     # 1. Prepare CSV content
     # Format matches bgg_dataset.csv structure: ID;Name;Year Published;Min Players;Max Players;Play Time;Min Age;Users Rated;Rating Average;BGG Rank;Complexity Average;Owned Users;Mechanics;Domains
     # We only need the fields our parser uses: Name, Year Published, Min/Max Players, Play Time, Complexity Average, Rating Average
@@ -13,12 +13,9 @@ async def test_upload_csv(async_client: AsyncClient, admin_token_headers: dict[s
 """
     
     # 2. Upload file
-    # Ensure filename ends with .csv
     files = {"file": ("test_upload.csv", csv_content, "text/csv")}
     
-    # Note: The upload endpoint is currently public in routers/boardgames.py (no Depends(require_role...))
-    # If it required auth, we'd pass headers=admin_token_headers
-    response = await async_client.post("/boardgames/upload", files=files)
+    response = await async_client.post("/boardgames/upload", files=files, headers=admin_token_headers)
     
     # 3. Verify response
     assert response.status_code == 201

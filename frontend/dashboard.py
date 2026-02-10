@@ -45,7 +45,7 @@ with st.sidebar:
                 except Exception as e:
                     st.error(f"Login failed: {e}")
     else:
-        st.write(f"Logged in as **Admin**")
+        st.write("Logged in as **Admin**")
         if st.button("Logout"):
             del st.session_state.token
             st.rerun()

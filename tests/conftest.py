@@ -56,3 +56,16 @@ async def async_client(session, mock_redis) -> AsyncGenerator[AsyncClient, None]
         yield c
 
     app.dependency_overrides.clear()
+@pytest.fixture
+def admin_token_headers():
+    from datetime import timedelta
+    from app.config import Settings
+    from app.security import create_access_token
+    settings = Settings()
+    token = create_access_token(
+        subject=settings.admin_username,
+        role="admin",
+        settings=settings,
+        expires_delta=timedelta(minutes=5),
+    )
+    return {"Authorization": f"Bearer {token}"}
