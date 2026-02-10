@@ -95,6 +95,7 @@ uv run uvicorn app.main:app --reload
 uv run streamlit run frontend/dashboard.py
 ```
 * Dashboard → [http://localhost:8501](http://localhost:8501)
+    * **Note**: To Create, Edit, or Delete games, use the **🔐 Admin Access** section in the sidebar (login with `admin`/`admin123`).
 
 ### 🎯 Local Demo
 This script walks you through the entire project flow (API + Frontend + Feature Demo):
