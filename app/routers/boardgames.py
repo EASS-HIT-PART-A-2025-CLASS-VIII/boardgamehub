@@ -13,6 +13,7 @@ from app import crud
 from app.models import BoardGame
 from app.schemas import BoardGameCreate, BoardGameRead, BoardGameUpdate
 from sqlmodel import select, func
+from app.limiter import limiter
 
 router = APIRouter(prefix="/boardgames", tags=["BoardGames"])
 
@@ -51,16 +52,27 @@ def stream_as_csv(payload: dict) -> StreamingResponse:
 
 
 @router.get("/")
+@limiter.limit("5/minute")
 def list_boardgames(
     request: Request,
     response: Response,
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=100),
     format: Literal["json", "csv"] = Query("json"),
+    search: str | None = Query(None),
+    min_players: int | None = Query(None),
+    max_players: int | None = Query(None),
     session: Session = Depends(get_session),
 ):
     offset = (page - 1) * page_size
-    items, total = crud.list_boardgames(session, offset=offset, limit=page_size)
+    items, total = crud.list_boardgames(
+        session, 
+        offset=offset, 
+        limit=page_size,
+        search=search,
+        min_players=min_players,
+        max_players=max_players,
+    )
     
     # Convert Pydantic models to dicts for JSON serialization/hashing
     items_dicts = [item.model_dump() for item in items]
@@ -132,7 +144,8 @@ async def upload_boardgames(
     """
     Upload a CSV file containing board games data from BGG dataset.
     """
-    if not file.filename.endswith(".csv"):
+    filename = file.filename or ""
+    if not filename.endswith(".csv"):
         raise HTTPException(status_code=400, detail="Invalid file format. Please upload a CSV file.")
 
     content = await file.read()
@@ -171,17 +184,26 @@ async def upload_boardgames(
 
             # Parse numeric fields with defaults
             try:
-                year = int(row.get("Year Published")) if row.get("Year Published") else None
-                min_players = int(row.get("Min Players")) if row.get("Min Players") else 0
-                max_players = int(row.get("Max Players")) if row.get("Max Players") else 0
-                play_time = int(row.get("Play Time")) if row.get("Play Time") else 0
+                # Helper for safer parsing
+                def get_int(key: str, default: int | None = 0) -> int | None:
+                    val = row.get(key)
+                    if val and val.strip():
+                        return int(val.strip())
+                    return default
+
+                year = get_int("Year Published", None)
+                min_players = get_int("Min Players") or 0
+                max_players = get_int("Max Players") or 0
+                play_time = get_int("Play Time") or 0
                 
                 # Handle comma decimal format 
-                complexity_str = row.get("Complexity Average", "0").replace(",", ".")
-                complexity = float(complexity_str) if complexity_str else 0.0
+                complexity_val = row.get("Complexity Average", "0")
+                complexity_str = complexity_val.replace(",", ".") if complexity_val else "0"
+                complexity = float(complexity_str)
                 
-                rating_str = row.get("Rating Average", "0").replace(",", ".")
-                rating = float(rating_str) if rating_str else 0.0
+                rating_val = row.get("Rating Average", "0")
+                rating_str = rating_val.replace(",", ".") if rating_val else "0"
+                rating = float(rating_str)
             except ValueError:
                 errors.append(f"Skipped row {row.get('ID', '?')}: Invalid numeric format")
                 continue

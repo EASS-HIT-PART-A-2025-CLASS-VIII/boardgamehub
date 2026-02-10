@@ -27,9 +27,23 @@ def _raise_request_error(e: httpx.RequestError) -> NoReturn:
     raise RuntimeError(f"Cannot reach API at {BASE_URL}. Error: {e}")
 
 
-def list_boardgames(page: int = 1, page_size: int = 10) -> dict:
+def list_boardgames(
+    page: int = 1, 
+    page_size: int = 10,
+    search: str | None = None,
+    min_players: int | None = None,
+    max_players: int | None = None,
+) -> dict:
+    params = {"page": page, "page_size": page_size}
+    if search:
+        params["search"] = search
+    if min_players is not None:
+        params["min_players"] = min_players
+    if max_players is not None:
+        params["max_players"] = max_players
+
     try:
-        r = _client.get("/boardgames/", params={"page": page, "page_size": page_size})
+        r = _client.get("/boardgames/", params=params)
         r.raise_for_status()
         return r.json()
     except httpx.HTTPStatusError as e:

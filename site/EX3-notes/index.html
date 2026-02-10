@@ -440,6 +440,28 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#5-async-component-trace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Async Component Trace
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-product-enhancement-csv-upload" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Product Enhancement: CSV Upload
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -517,15 +539,62 @@
   
   
   
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runbooks
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Runbooks
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
     <li class="md-nav__item">
-      <a href="../mcp/" class="md-nav__link">
+      <a href="../runbooks/compose/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    FastMCP Tool
+    Docker Compose
   
 
     
@@ -534,6 +603,14 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -619,6 +696,28 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#5-async-component-trace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Async Component Trace
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-product-enhancement-csv-upload" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Product Enhancement: CSV Upload
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -682,6 +781,22 @@ def verify_password(plain_password: str, password_hash: str) -&gt; bool:
 - 401 Unauthorized for missing tokens.
 - 403 Forbidden for insufficient roles.
 - 401 Unauthorized for expired tokens.</p>
+<h2 id="5-async-component-trace">5. Async Component Trace</h2>
+<p>The <code>scripts/refresh.py</code> sends up to 3 concurrent requests. The first succeeds (updates stats), and subsequent requests are skipped due to idempotency (Redis key <code>stats:daily:YYYY-MM-DD</code>).</p>
+<p><strong>Trace Output:</strong></p>
+<pre><code>API: http://localhost:8000
+Token endpoint: /auth/token
+Idempotency-Key: stats:daily:2026-02-10
+[1] {'status': 'updated', 'idempotency_key': 'stats:daily:2026-02-10', 'generated_at': '2026-02-10T12:37:51.178878+00:00', 'trace_id': 'refresh-script'}
+[2] {'status': 'already_done', 'idempotency_key': 'stats:daily:2026-02-10'}
+[3] {'status': 'already_done', 'idempotency_key': 'stats:daily:2026-02-10'}
+</code></pre>
+<h2 id="6-product-enhancement-csv-upload">6. Product Enhancement: CSV Upload</h2>
+<p>We added a feature to <strong>bulk upload board games via CSV</strong>.
+- <strong>Endpoint</strong>: <code>POST /boardgames/upload</code>
+- <strong>Frontend</strong>: A dedicated upload section in the Dashboard.
+- <strong>Optimization</strong>: Uses bulk insert (<code>session.add_all</code>) and pre-fetches existing names to avoid N+1 queries.
+- <strong>Testing</strong>: Covered by <code>tests/test_upload.py</code>.</p>
 
 
 

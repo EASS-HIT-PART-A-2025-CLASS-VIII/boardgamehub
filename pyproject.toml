@@ -19,6 +19,7 @@ dependencies = [
     "uvicorn>=0.40.0",
     "numpy<2.4",
     "python-multipart>=0.0.22",
+    "slowapi>=0.1.9",
 ]
 
 [tool.setuptools]

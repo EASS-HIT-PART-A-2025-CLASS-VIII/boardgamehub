@@ -2,7 +2,7 @@
 
 A full **CRUD API** and **dashboard application** built with **FastAPI**, **SQLModel**, and **SQLite**.
 The project allows users to **create, list, update, and delete board games** through clean REST endpoints and a user-friendly **Streamlit** interface.
-It supports **Dockerized deployment**, **secure JWT authentication**, **advanced API features** (pagination, caching, CSV export), and **FastMCP integration** for AI agents.
+It supports **Dockerized deployment**, **secure JWT authentication**, **advanced API features** (pagination, rate limiting, caching, CSV export), and **real-time statistics counters**.
 
 ---
 
@@ -16,45 +16,25 @@ It supports **Dockerized deployment**, **secure JWT authentication**, **advanced
 | **Frontend**          | **Streamlit** – interactive dashboard for managing board games |
 | **Security**          | **JWT** + **Bcrypt** – secure authentication and password hashing |
 | **Tooling**           | **Ruff** (linting), **Mypy** (typing), **MkDocs** (documentation) |
-| **AI Integration**    | **FastMCP** – Model Context Protocol tool for AI agents        |
+| **Rate Limiting**      | **SlowAPI** – protects API from brute-force and abuse          |
 | **Deployment**        | **Docker** + **Docker Compose**                                |
 
 ---
 
-## 🔐 Setup & Configuration
-
-### 1. Environment Variables
-This project requires an `.env` file for secrets.
-
-1. Copy the example file:
-   ```bash
-   cp .env.example .env
-   ```
-2. The default configuration uses:
-   - **Username:** `admin`
-   - **Password:** `admin123`
-
-### 2. Changing the Password (Optional)
-To use a different password, generate a new Bcrypt hash and update `BOARDGAME_ADMIN_PASSWORD_HASH` in `.env`:
-```bash
-# Run this command to generate a hash for "my-new-password"
-uv run python -c "from passlib.context import CryptContext; print(CryptContext(schemes=['bcrypt'], deprecated='auto').hash('my-new-password'))"
-```
-
----
 
 ## ✨ Key Features
 
 - **"The Board Room" Dashboard**:
-    - **Visual Analytics**: Visual Analytics Chart (Rating vs Complexity).
-    - **KPI Metrics**: Real-time stats for Total Games, Avg Rating, and Playtime.
+    - **Visual Analytics**: Interactive Rating vs Complexity charts.
+    - **KPI Metrics**: Dynamic stats that update based on your filters.
+    - **Server-Side Filtering**: Search and filter (Solo/Duel) across the entire database.
 - **Secure Authentication**: Role-based access control using JWT tokens and Bcrypt password hashing.
 - **Advanced Data Retrieval**: 
-    - **Pagination**: Efficiently browse large datasets (`?page=1&page_size=10`).
-    - **CSV Export**: Download data directly (`?format=csv`).
+    - **Pagination**: Efficiently browse large datasets (`?page=1&page_size=50`).
+    - **Rate Limiting**: Integrated protection with `X-RateLimit` headers.
+    - **CSV Export**: High-performance data export (`?format=csv`).
     - **Caching**: ETag support for bandwidth optimization (`304 Not Modified`).
-- **Real-time Stats**: Redis-backed statistics dashboard.
-- **Automated Quality**: Integrated `pre-commit` hooks for linting, testing, and documentation.
+- **Real-time Stats**: Redis-backed statistics and background worker for metric refreshing.
 
 ---
 
@@ -116,7 +96,7 @@ uv run streamlit run frontend/dashboard.py
 ```
 * Dashboard → [http://localhost:8501](http://localhost:8501)
 
-### 🎯 Local Demo (Grader Version)
+### 🎯 Local Demo
 This script walks you through the entire project flow (API + Frontend + Feature Demo):
 ```bash
 uv run python -m app.demo
@@ -158,3 +138,25 @@ docker compose up --build
 **Once running, access the services here:**
 *   **Dashboard**: [http://localhost:8501](http://localhost:8501)
 *   **API & Documentation**: [http://localhost:8000](http://localhost:8000) (auto-redirects to /docs)
+
+---
+
+## 🔐 Setup & Configuration
+
+### 1. Environment Variables
+This project requires an `.env` file for secrets.
+
+1. Copy the example file:
+   ```bash
+   cp .env.example .env
+   ```
+2. The default configuration uses:
+   - **Username:** `admin`
+   - **Password:** `admin123`
+
+### 2. Changing the Password (Optional)
+To use a different password, generate a new Bcrypt hash and update `BOARDGAME_ADMIN_PASSWORD_HASH` in `.env`:
+```bash
+# Run this command to generate a hash for "my-new-password"
+uv run python -c "from passlib.context import CryptContext; print(CryptContext(schemes=['bcrypt'], deprecated='auto').hash('my-new-password'))"
+```

@@ -9,23 +9,23 @@
       
       
       
-        <link rel="prev" href="../release-checklist/">
+        <link rel="prev" href="../../release-checklist/">
       
       
       
         
       
       
-      <link rel="icon" href="../assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
     
     
       
-        <title>FastMCP Tool - BoardGameHub API</title>
+        <title>Docker Compose - BoardGameHub API</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
       
       
 
@@ -44,7 +44,7 @@
       
     
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -62,7 +62,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#fastmcp-tool-usage" class="md-skip">
+        <a href="#runbook-docker-compose-orchestration" class="md-skip">
           Skip to content
         </a>
       
@@ -78,7 +78,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="BoardGameHub API" class="md-header__button md-logo" aria-label="BoardGameHub API" data-md-component="logo">
+    <a href="../.." title="BoardGameHub API" class="md-header__button md-logo" aria-label="BoardGameHub API" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -98,7 +98,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              FastMCP Tool
+              Docker Compose
             
           </span>
         </div>
@@ -176,7 +176,7 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="BoardGameHub API" class="md-nav__button md-logo" aria-label="BoardGameHub API" data-md-component="logo">
+    <a href="../.." title="BoardGameHub API" class="md-nav__button md-logo" aria-label="BoardGameHub API" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -194,7 +194,7 @@
   
   
     <li class="md-nav__item">
-      <a href=".." class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   
@@ -221,7 +221,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/" class="md-nav__link">
+      <a href="../../api/" class="md-nav__link">
         
   
   
@@ -248,7 +248,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../service-contract/" class="md-nav__link">
+      <a href="../../service-contract/" class="md-nav__link">
         
   
   
@@ -322,7 +322,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../EX3-notes/" class="md-nav__link">
+      <a href="../../EX3-notes/" class="md-nav__link">
         
   
   
@@ -350,7 +350,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../security-checklist/" class="md-nav__link">
+      <a href="../../security-checklist/" class="md-nav__link">
         
   
   
@@ -385,7 +385,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../release-checklist/" class="md-nav__link">
+      <a href="../../release-checklist/" class="md-nav__link">
         
   
   
@@ -413,10 +413,61 @@
   
   
   
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runbooks
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Runbooks
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
     <li class="md-nav__item md-nav__item--active">
       
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
+      
+        
       
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
@@ -426,7 +477,7 @@
   <span class="md-ellipsis">
     
   
-    FastMCP Tool
+    Docker Compose
   
 
     
@@ -444,7 +495,7 @@
   <span class="md-ellipsis">
     
   
-    FastMCP Tool
+    Docker Compose
   
 
     
@@ -460,6 +511,8 @@
   
   
   
+    
+  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -468,10 +521,105 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#fastmcp-tool-usage" class="md-nav__link">
+  <a href="#launching-the-stack" class="md-nav__link">
     <span class="md-ellipsis">
       
-        FastMCP Tool Usage
+        🚀 Launching the Stack
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚀 Launching the Stack">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#services-included" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Services Included:
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ✅ Verification
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="✅ Verification">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-health-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Health Checks
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing-in-ci" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧪 Testing in CI
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧪 Testing in CI">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-pytest" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Pytest
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-schemathesis-contract-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Schemathesis (Contract Testing)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🛠️ Troubleshooting
       
     </span>
   </a>
@@ -481,6 +629,14 @@
     </ul>
   
 </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
       
     </li>
   
@@ -503,6 +659,8 @@
   
   
   
+    
+  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -511,10 +669,105 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#fastmcp-tool-usage" class="md-nav__link">
+  <a href="#launching-the-stack" class="md-nav__link">
     <span class="md-ellipsis">
       
-        FastMCP Tool Usage
+        🚀 Launching the Stack
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚀 Launching the Stack">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#services-included" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Services Included:
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ✅ Verification
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="✅ Verification">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-health-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Health Checks
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing-in-ci" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧪 Testing in CI
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧪 Testing in CI">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-pytest" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Pytest
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-schemathesis-contract-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Schemathesis (Contract Testing)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🛠️ Troubleshooting
       
     </span>
   </a>
@@ -538,28 +791,41 @@
 
 
 
-  <h1>FastMCP Tool</h1>
-
-<h3 id="fastmcp-tool-usage">FastMCP Tool Usage</h3>
-<p>The server exposes a tool <code>list-boardgames-page</code> that allows agents to query the board game database with pagination.</p>
-<p><strong>Usage:</strong></p>
-<pre><code class="language-bash">uv run python scripts/boardgames_mcp.py
+<h1 id="runbook-docker-compose-orchestration">Runbook: Docker Compose Orchestration</h1>
+<p>This document describes how to launch, verify, and test the BoardGameHub microservices stack.</p>
+<h2 id="launching-the-stack">🚀 Launching the Stack</h2>
+<p>To build and start all services (API, Frontend, Redis, and Worker):</p>
+<pre><code class="language-bash">docker compose up --build
 </code></pre>
-<p>This runs the MCP server over stdio.</p>
-<p><strong>Probe:</strong>
-You can verify the tool works by running the probe script:</p>
-<pre><code class="language-bash">uv run scripts/mcp_probe.py
+<h3 id="services-included">Services Included:</h3>
+<ul>
+<li><strong>Backend API</strong>: <code>http://localhost:8000</code></li>
+<li><strong>Frontend Dashboard</strong>: <code>http://localhost:8501</code></li>
+<li><strong>Redis Cache/Stats</strong>: <code>localhost:6379</code></li>
+<li><strong>Worker</strong>: Runs in the background (no public port).</li>
+</ul>
+<h2 id="verification">✅ Verification</h2>
+<h3 id="1-health-checks">1. Health Checks</h3>
+<p>The backend service includes a health check. You can verify the health status by running:</p>
+<pre><code class="language-bash">docker ps
 </code></pre>
-<p><strong>Sample Output:</strong></p>
-<pre><code class="language-json">{
-  &quot;status&quot;: 200,
-  &quot;total&quot;: 5,
-  &quot;items&quot;: [
-    {&quot;id&quot;: 1, &quot;name&quot;: &quot;Catan&quot;, ...},
-    {&quot;id&quot;: 2, &quot;name&quot;: &quot;Carcassonne&quot;, ...}
-  ]
-}
+<p>Wait until the status shows <code>(healthy)</code>. You can also check manually:</p>
+<pre><code class="language-bash">curl http://localhost:8000/health
 </code></pre>
+<h2 id="testing-in-ci">🧪 Testing in CI</h2>
+<h3 id="1-pytest">1. Pytest</h3>
+<p>To run the automated test suite within the environment:</p>
+<pre><code class="language-bash">uv run pytest
+</code></pre>
+<h3 id="2-schemathesis-contract-testing">2. Schemathesis (Contract Testing)</h3>
+<p>To run property-based tests against the API schema:</p>
+<pre><code class="language-bash">uv run schemathesis run http://localhost:8000/openapi.json
+</code></pre>
+<h2 id="troubleshooting">🛠️ Troubleshooting</h2>
+<ul>
+<li><strong>Logs</strong>: View logs for all services: <code>docker compose logs -f</code></li>
+<li><strong>Reset</strong>: To wipe the database and starts fresh: <code>docker compose down -v</code></li>
+</ul>
 
 
 
@@ -609,10 +875,10 @@ You can verify the tool works by running the probe script:</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": [], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>

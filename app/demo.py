@@ -1,6 +1,5 @@
 import time
 import subprocess
-import sys
 import os
 
 def print_header(msg):

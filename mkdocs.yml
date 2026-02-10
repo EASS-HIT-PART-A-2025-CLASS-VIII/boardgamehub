@@ -9,4 +9,5 @@ nav:
       - Notes: EX3-notes.md
       - Checklist: security-checklist.md
   - Release Checklist: release-checklist.md
-  - FastMCP Tool: mcp.md
+  - Runbooks:
+      - Docker Compose: runbooks/compose.md

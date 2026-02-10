@@ -23,21 +23,51 @@ PAGE_SIZE = 50
 
 
 @st.cache_data(ttl=15)
-def cached_games(page: int, page_size: int) -> dict:
-    return list_boardgames(page=page, page_size=page_size)
+def cached_games(page: int, page_size: int, search: str | None = None, min_players: int | None = None, max_players: int | None = None) -> dict:
+    return list_boardgames(
+        page=page, 
+        page_size=page_size, 
+        search=search, 
+        min_players=min_players, 
+        max_players=max_players
+    )
 
 
 def normalize_name(s: str) -> str:
     return (s or "").strip().lower()
 
 
-# ================= TOP: METRICS & CHARTS =================
+# ================= LOGIC: INITIALIZE SEARCH & FILTERS =================
 if "page" not in st.session_state:
     st.session_state.page = 1
 
+# Retrieve filter values from session state (set by widgets below)
+search_query = st.session_state.get("search_input", "")
+filter_solo = st.session_state.get("filter_solo", False)
+filter_duel = st.session_state.get("filter_duel", False)
+
+# Map filters to API parameters
+api_min_players = 1 if filter_solo else None
+api_max_players = 2 if filter_duel else None
+
+# Reset page if filters change
+if "last_search" not in st.session_state or st.session_state.last_search != search_query or \
+   "last_solo" not in st.session_state or st.session_state.last_solo != filter_solo or \
+   "last_duel" not in st.session_state or st.session_state.last_duel != filter_duel:
+    st.session_state.page = 1
+    st.session_state.last_search = search_query
+    st.session_state.last_solo = filter_solo
+    st.session_state.last_duel = filter_duel
+
 try:
-    # Fetch data for current page
-    data = cached_games(page=st.session_state["page"], page_size=PAGE_SIZE)
+    # Fetch data with server-side filtering
+    data = cached_games(
+        page=st.session_state["page"], 
+        page_size=PAGE_SIZE,
+        search=search_query,
+        min_players=api_min_players,
+        max_players=api_max_players
+    )
     games = data.get("items", [])
     total = data.get("total", 0)
 except RuntimeError as e:
@@ -90,28 +120,16 @@ with col_left:
     st.subheader("📋 Games List")
 
     if games:
-        # Search, Filters & Export
-        search = st.text_input("🔍 Search", placeholder="Type name, designer...", label_visibility="collapsed")
+        # 1. Search Bar
+        st.text_input("🔍 Search", placeholder="Type name, designer...", key="search_input", label_visibility="collapsed")
         
+        # 2. Filters & Export Row
         c1, c2, c3 = st.columns([1, 1, 1])
         with c1:
-            filter_solo = st.checkbox("👤 Solo Mode (1 Player)")
+            st.checkbox("👤 Solo Mode (1 Player)", key="filter_solo")
         with c2:
-            filter_duel = st.checkbox("⚔️ 1 vs 1 (Duel)")
+            st.checkbox("⚔️ 1 vs 1 (Duel)", key="filter_duel")
         
-        # Apply Filters
-        if search:
-            df = df[
-                df["name"].str.contains(search, case=False) | 
-                df["designer"].str.contains(search, case=False, na=False)
-            ]
-            
-        if filter_solo:
-            df = df[df["min_players"] == 1]
-            
-        if filter_duel:
-            df = df[df["max_players"] == 2]
-            
         with c3:
             st.download_button(
                 "📥 Export CSV",
