@@ -1,5 +1,7 @@
 from typing import Optional
+from datetime import datetime
 from sqlmodel import SQLModel
+
 
 
 class BoardGameBase(SQLModel):
@@ -32,3 +34,18 @@ class BoardGameUpdate(SQLModel):
     play_time_min: Optional[int] = None
     complexity: Optional[float] = None
     rating: Optional[float] = None
+
+class TopRatedItem(SQLModel):
+    id: int
+    name: str
+    rating: float
+
+
+class StatsSnapshot(SQLModel):
+    total_games: int
+    avg_rating: Optional[float] = None
+    avg_complexity: Optional[float] = None
+    player_range_counts: dict[str, int] = {}
+    top_rated: list[TopRatedItem] = []
+    generated_at: datetime
+

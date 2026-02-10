@@ -4,8 +4,34 @@ from sqlalchemy import func
 from app.models import BoardGame
 
 
-def list_boardgames(session: Session) -> list[BoardGame]:
-    return session.exec(select(BoardGame)).all()
+def list_boardgames(
+    session: Session, 
+    offset: int = 0, 
+    limit: int = 100,
+    search: str | None = None,
+    min_players: int | None = None,
+    max_players: int | None = None,
+) -> tuple[list[BoardGame], int]:
+    statement = select(BoardGame)
+    
+    if search:
+        search_filter = f"%{search}%"
+        statement = statement.where(
+            BoardGame.name.ilike(search_filter) | BoardGame.designer.ilike(search_filter)  # type: ignore
+        )
+    if min_players is not None:
+        statement = statement.where(BoardGame.min_players == min_players)
+    if max_players is not None:
+        statement = statement.where(BoardGame.max_players == max_players)
+
+    # Count total matching records
+    count_statement = select(func.count()).select_from(statement.subquery())
+    total = session.exec(count_statement).one()
+
+    # Get page items
+    query = statement.order_by(BoardGame.id).offset(offset).limit(limit)  # type: ignore
+    items = list(session.exec(query).all())
+    return items, total
 
 
 def get_boardgame(session: Session, boardgame_id: int) -> BoardGame | None:

@@ -8,13 +8,21 @@ services:
     environment:
       - BOARDGAME_DB_MODE=sqlite
       - BOARDGAME_DATABASE_URL_SQLITE=sqlite:///./data/boardgames.db
+      - BOARDGAME_REDIS_URL=redis://redis:6379/0
+      - BOARDGAME_ADMIN_USERNAME=admin
+      - BOARDGAME_ADMIN_PASSWORD_HASH=${BOARDGAME_ADMIN_PASSWORD_HASH}
+      - BOARDGAME_JWT_SECRET_KEY=dev-secret-123
     volumes:
       - ./data:/app/data
+    depends_on:
+      redis:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 10s
-      timeout: 3s
-      retries: 3
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 45s
 
   frontend:
     build:
@@ -27,3 +35,35 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: uv run python scripts/worker.py
+    environment:
+      - BOARDGAME_API_BASE_URL=http://backend:8000
+      - BOARDGAME_ADMIN_USERNAME=admin
+      - BOARDGAME_ADMIN_PASSWORD_HASH=${BOARDGAME_ADMIN_PASSWORD_HASH}
+      - BOARDGAME_JWT_SECRET_KEY=dev-secret-123
+      - BOARDGAME_WORKER_INTERVAL_SECONDS=60
+      - BOARDGAME_REDIS_URL=redis://redis:6379/0
+      - BOARDGAME_DB_MODE=sqlite
+      - BOARDGAME_DATABASE_URL_SQLITE=sqlite:///./data/boardgames.db
+    depends_on:
+      backend:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./data:/app/data
