@@ -69,12 +69,14 @@ if games:
     chart = alt.Chart(df).mark_circle(opacity=0.9, stroke="white", strokeWidth=1).encode(
         x=alt.X("rating", scale=alt.Scale(domain=[0, 10], clamp=True), title="Rating (0-10)"),
         y=alt.Y("complexity", scale=alt.Scale(domain=[0, 5], clamp=True), title="Complexity (0-5)"),
-        size=alt.Size("play_time_min", title="Playtime (min)", scale=alt.Scale(range=[300, 1500]), legend={'format': 'd'}),
-        color=alt.Color("max_players", title="Max Players", scale=alt.Scale(scheme="orangered")),
+        size=alt.Size("play_time_min", title="Playtime (min)", scale=alt.Scale(range=[100, 800]), legend=alt.Legend(orient='top', direction='horizontal')),
+        color=alt.Color("max_players", title="Max Players", scale=alt.Scale(scheme="orangered"), legend=alt.Legend(orient='top', direction='horizontal')),
         tooltip=["name", "designer", "rating", "complexity", "play_time_min", "max_players"]
     ).properties(
-        height=400,
-        padding={"left": 20, "top": 20, "right": 20, "bottom": 20}
+        height=500,
+    ).configure_axis(
+        labelFontSize=12,
+        titleFontSize=14
     )
 
     st.altair_chart(chart, use_container_width=True)
