@@ -13,6 +13,8 @@ from frontend.client import (
     list_boardgames,
     update_boardgame,
     upload_csv,
+    login,
+    set_auth_token,
 )
 
 st.set_page_config(page_title="The Board Room", layout="wide", page_icon="🎲")
@@ -20,6 +22,35 @@ st.title("🎲 The Board Room")
 st.markdown("Your curated collection of tabletop experiences.")
 
 PAGE_SIZE = 50
+
+# Ensure the client has the token if we are logged in
+if "token" in st.session_state:
+    set_auth_token(st.session_state.token)
+else:
+    set_auth_token(None)
+
+# ================= SIDEBAR: AUTHENTICATION =================
+with st.sidebar:
+    st.header("🔐 Admin Access")
+    if "token" not in st.session_state:
+        with st.form("login_form"):
+            u = st.text_input("Username")
+            p = st.text_input("Password", type="password")
+            if st.form_submit_button("Login"):
+                try:
+                    token = login(u, p)
+                    st.session_state.token = token
+                    st.success("Logged in!")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Login failed: {e}")
+    else:
+        st.write(f"Logged in as **Admin**")
+        if st.button("Logout"):
+            del st.session_state.token
+            st.rerun()
+
+    st.markdown("---")
 
 
 @st.cache_data(ttl=15)

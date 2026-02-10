@@ -14,6 +14,7 @@ from app.models import BoardGame
 from app.schemas import BoardGameCreate, BoardGameRead, BoardGameUpdate
 from sqlmodel import select, func
 from app.limiter import limiter
+from app.security import require_role
 
 router = APIRouter(prefix="/boardgames", tags=["BoardGames"])
 
@@ -92,7 +93,11 @@ def list_boardgames(
 
 
 @router.post("/", response_model=BoardGameRead, status_code=201)
-def create_boardgame(payload: BoardGameCreate, session: Session = Depends(get_session)):
+def create_boardgame(
+    payload: BoardGameCreate, 
+    session: Session = Depends(get_session),
+    _claims=Depends(require_role("admin")),
+):
     boardgame_obj = BoardGame(**payload.model_dump())
     try:
         return crud.create_boardgame(session, boardgame_obj)
@@ -113,6 +118,7 @@ def update_boardgame(
     boardgame_id: int,
     payload: BoardGameUpdate,
     session: Session = Depends(get_session),
+    _claims=Depends(require_role("admin")),
 ):
     try:
         updated = crud.update_boardgame(
@@ -129,7 +135,11 @@ def update_boardgame(
 
 
 @router.delete("/{boardgame_id}", status_code=204)
-def delete_boardgame(boardgame_id: int, session: Session = Depends(get_session)):
+def delete_boardgame(
+    boardgame_id: int, 
+    session: Session = Depends(get_session),
+    _claims=Depends(require_role("admin")),
+):
     ok = crud.delete_boardgame(session, boardgame_id)
     if not ok:
         raise HTTPException(status_code=404, detail="Board game not found")
@@ -139,7 +149,8 @@ def delete_boardgame(boardgame_id: int, session: Session = Depends(get_session))
 @router.post("/upload", status_code=201)
 async def upload_boardgames(
     file: UploadFile = File(...),
-    session: Session = Depends(get_session)
+    session: Session = Depends(get_session),
+    _claims=Depends(require_role("admin")),
 ):
     """
     Upload a CSV file containing board games data from BGG dataset.

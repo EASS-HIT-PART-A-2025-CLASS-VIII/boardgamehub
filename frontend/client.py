@@ -6,6 +6,27 @@ BASE_URL = os.getenv("BOARDGAME_API_BASE_URL", "http://127.0.0.1:8000")
 _client = httpx.Client(base_url=BASE_URL, timeout=600.0)
 
 
+def set_auth_token(token: str | None) -> None:
+    if token:
+        _client.headers["Authorization"] = f"Bearer {token}"
+    else:
+        if "Authorization" in _client.headers:
+            del _client.headers["Authorization"]
+
+
+def login(username: str, password: str) -> str:
+    try:
+        r = _client.post("/auth/token", data={"username": username, "password": password})
+        r.raise_for_status()
+        token = r.json()["access_token"]
+        set_auth_token(token)
+        return token
+    except httpx.HTTPStatusError as e:
+        _raise_clean_error(e)
+    except httpx.RequestError as e:
+        _raise_request_error(e)
+
+
 def _raise_clean_error(e: httpx.HTTPStatusError) -> NoReturn:
     """
     Convert FastAPI error responses into a clean Python exception message.
