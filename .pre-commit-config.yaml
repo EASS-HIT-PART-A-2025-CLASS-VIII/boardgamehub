@@ -10,3 +10,10 @@ repos:
     hooks:
       - id: mypy
         additional_dependencies: ["sqlmodel", "pydantic", "fastapi"]
+  - repo: local
+    hooks:
+      - id: mkdocs
+        name: mkdocs build
+        entry: uv run mkdocs build
+        language: system
+        pass_filenames: false

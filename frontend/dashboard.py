@@ -1,20 +1,25 @@
-import math
-import pandas as pd  
-import streamlit as st
+import sys
+import os
 
+# Add project root to sys.path so we can import 'frontend'
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+import pandas as pd
+import streamlit as st
 
 from frontend.client import ( 
     create_boardgame,
     delete_boardgame,
     list_boardgames,
     update_boardgame,
+    upload_csv,
 )
 
 st.set_page_config(page_title="The Board Room", layout="wide", page_icon="🎲")
 st.title("🎲 The Board Room")
 st.markdown("Your curated collection of tabletop experiences.")
 
-PAGE_SIZE = 100
+PAGE_SIZE = 50
 
 
 @st.cache_data(ttl=15)
@@ -31,8 +36,8 @@ if "page" not in st.session_state:
     st.session_state.page = 1
 
 try:
-    # Fetch data (up to 100 items for scrolling view)
-    data = cached_games(1, PAGE_SIZE)
+    # Fetch data for current page
+    data = cached_games(page=st.session_state["page"], page_size=PAGE_SIZE)
     games = data.get("items", [])
     total = data.get("total", 0)
 except RuntimeError as e:
@@ -45,7 +50,14 @@ if games:
     # 1. Key Metrics Row
     m1, m2, m3, m4 = st.columns(4)
     m1.metric("Total Games", total)
-    m2.metric("Avg Rating", f"{df['rating'].mean():.1f}")
+    
+    # Highest Rated Game Logic
+    top_game = df.loc[df['rating'].idxmax()] if not df.empty else None
+    if top_game is not None:
+        m2.metric("🏆 Highest Rated", f"{top_game['rating']} - {top_game['name']}")
+    else:
+        m2.metric("🏆 Highest Rated", "—")
+        
     m3.metric("Avg Complexity", f"{df['complexity'].mean():.1f}")
     m4.metric("Avg Playtime", f"{df['play_time_min'].mean():.0f} min")
     
@@ -60,6 +72,9 @@ if games:
         size=alt.Size("play_time_min", title="Playtime (min)", scale=alt.Scale(range=[300, 1500]), legend={'format': 'd'}),
         color=alt.Color("max_players", title="Max Players", scale=alt.Scale(scheme="orangered")),
         tooltip=["name", "designer", "rating", "complexity", "play_time_min", "max_players"]
+    ).properties(
+        height=400,
+        padding={"left": 20, "top": 20, "right": 20, "bottom": 20}
     )
 
     st.altair_chart(chart, use_container_width=True)
@@ -73,17 +88,60 @@ with col_left:
     st.subheader("📋 Games List")
 
     if games:
-        # Search filter
+        # Search, Filters & Export
         search = st.text_input("🔍 Search", placeholder="Type name, designer...", label_visibility="collapsed")
+        
+        c1, c2, c3 = st.columns([1, 1, 1])
+        with c1:
+            filter_solo = st.checkbox("👤 Solo Mode (1 Player)")
+        with c2:
+            filter_duel = st.checkbox("⚔️ 1 vs 1 (Duel)")
+        
+        # Apply Filters
         if search:
             df = df[
                 df["name"].str.contains(search, case=False) | 
                 df["designer"].str.contains(search, case=False, na=False)
             ]
+            
+        if filter_solo:
+            df = df[df["min_players"] == 1]
+            
+        if filter_duel:
+            df = df[df["max_players"] == 2]
+            
+        with c3:
+            st.download_button(
+                "📥 Export CSV",
+                df.to_csv(index=False).encode("utf-8"),
+                "boardgames.csv",
+                "text/csv",
+                key='download-csv'
+            )
+
+        with c3:
+            with st.expander("📤 Upload CSV", expanded=False):
+                st.caption("Upload 'bgg_dataset.csv' format")
+                uploaded_file = st.file_uploader("Choose a CSV file", type="csv", label_visibility="collapsed")
+                
+                if uploaded_file is not None:
+                    if st.button("Start Upload", key="btn_upload"):
+                        with st.spinner("Uploading games... This may take a while."):
+                            try:
+                                bytes_data = uploaded_file.getvalue()
+                                result = upload_csv(bytes_data, uploaded_file.name)
+                                st.success(result.get("message", "Upload complete"))
+                                if result.get("errors"):
+                                    with st.expander("Show Errors"):
+                                        st.write(result["errors"])
+                                cached_games.clear()
+                            except Exception as e:
+                                st.error(f"Upload failed: {e}")
 
         # Polished Data Table
         st.dataframe(
             df,
+            # using 'use_container_width' because 'width="stretch"' is not standard in current stable Streamlit
             use_container_width=True,
             hide_index=True,
             height=600,  # Taller table for scrolling
@@ -99,9 +157,30 @@ with col_left:
             }
         )
 
+        # Pagination Controls
+        if total > PAGE_SIZE:
+            # Calculate total pages
+            total_pages = (total + PAGE_SIZE - 1) // PAGE_SIZE
+            
+            c_prev, c_info, c_next = st.columns([1, 2, 1])
+            
+            with c_prev:
+                if st.button("⬅️ Previous", disabled=st.session_state.page <= 1, key="btn_prev"):
+                    st.session_state.page -= 1
+                    st.rerun()
+            
+            with c_info:
+                st.markdown(f"<div style='text-align: center; padding-top: 5px;'>Page <b>{st.session_state.page}</b> of <b>{total_pages}</b></div>", unsafe_allow_html=True)
+            
+            with c_next:
+                if st.button("Next ➡️", disabled=st.session_state.page >= total_pages, key="btn_next"):
+                    st.session_state.page += 1
+                    st.rerun()
+
         # ---- Delete ----
-        with st.expander("🗑️ Dangerous Zone (Delete Games)"):
-            st.warning("Deleting a game is permanent.")
+        st.markdown("---")
+        st.subheader("🗑️ Delete Game")
+        st.warning("⚠️ Warning: Deleting a game is permanent.")
 
         selected_game = st.selectbox(
             "Select a game to delete",
@@ -151,16 +230,22 @@ with col_right:
         designer = st.text_input("Designer")
 
         c1, c2 = st.columns(2)
-        with c1: year_published = st.number_input("Year published", min_value=0, max_value=2100, value=2023)
-        with c2: play_time_min = st.number_input("Play time (min)", min_value=0, max_value=600, value=30)
+        with c1:
+            year_published = st.number_input("Year published", min_value=0, max_value=2100, value=2024)
+        with c2:
+            play_time_min = st.number_input("Play time (min)", min_value=0, max_value=600, value=30)
 
         c3, c4 = st.columns(2)
-        with c3: min_players = st.number_input("Min players", min_value=0, max_value=20, value=2)
-        with c4: max_players = st.number_input("Max players", min_value=0, max_value=20, value=4)
+        with c3:
+            min_players = st.number_input("Min players", min_value=0, max_value=20, value=2)
+        with c4:
+            max_players = st.number_input("Max players", min_value=0, max_value=20, value=4)
 
         c5, c6 = st.columns(2)
-        with c5: complexity = st.number_input("Complexity", min_value=0.0, max_value=5.0, value=2.0, step=0.1)
-        with c6: rating = st.number_input("Rating", min_value=0.0, max_value=10.0, value=5.0, step=0.1)
+        with c5:
+            complexity = st.number_input("Complexity", min_value=0.0, max_value=5.0, value=2.0, step=0.1)
+        with c6:
+            rating = st.number_input("Rating", min_value=0.0, max_value=10.0, value=5.0, step=0.1)
 
         submitted = st.form_submit_button("Create")
 

@@ -5,7 +5,7 @@ import httpx
 
 API_BASE_URL = os.getenv("BOARDGAME_API_BASE_URL", "http://localhost:8000")
 ADMIN_USERNAME = os.getenv("BOARDGAME_ADMIN_USERNAME", "admin")
-ADMIN_PASSWORD = os.getenv("BOARDGAME_ADMIN_PASSWORD", "classroom")  
+ADMIN_PASSWORD = os.getenv("BOARDGAME_ADMIN_PASSWORD", "admin123")
 INTERVAL_SECONDS = int(os.getenv("BOARDGAME_WORKER_INTERVAL_SECONDS", "60"))
 
 def build_idempotency_key() -> str:
@@ -17,7 +17,7 @@ def build_idempotency_key() -> str:
 async def fetch_token(client: httpx.AsyncClient) -> str:
     r = await client.post(
         "/auth/token",
-        json={"username": ADMIN_USERNAME, "password": ADMIN_PASSWORD},
+        data={"username": ADMIN_USERNAME, "password": ADMIN_PASSWORD},
         timeout=10,
     )
     r.raise_for_status()

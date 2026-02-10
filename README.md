@@ -21,6 +21,28 @@ It supports **Dockerized deployment**, **secure JWT authentication**, **advanced
 
 ---
 
+## 🔐 Setup & Configuration
+
+### 1. Environment Variables
+This project requires an `.env` file for secrets.
+
+1. Copy the example file:
+   ```bash
+   cp .env.example .env
+   ```
+2. The default configuration uses:
+   - **Username:** `admin`
+   - **Password:** `admin123`
+
+### 2. Changing the Password (Optional)
+To use a different password, generate a new Bcrypt hash and update `BOARDGAME_ADMIN_PASSWORD_HASH` in `.env`:
+```bash
+# Run this command to generate a hash for "my-new-password"
+uv run python -c "from passlib.context import CryptContext; print(CryptContext(schemes=['bcrypt'], deprecated='auto').hash('my-new-password'))"
+```
+
+---
+
 ## ✨ Key Features
 
 - **"The Board Room" Dashboard**:
@@ -32,7 +54,6 @@ It supports **Dockerized deployment**, **secure JWT authentication**, **advanced
     - **CSV Export**: Download data directly (`?format=csv`).
     - **Caching**: ETag support for bandwidth optimization (`304 Not Modified`).
 - **Real-time Stats**: Redis-backed statistics dashboard.
-- **Agent-Ready**: Exposes a FastMCP tool (`list-boardgames-page`) for AI assistants to query the database.
 - **Automated Quality**: Integrated `pre-commit` hooks for linting, testing, and documentation.
 
 ---
@@ -50,10 +71,7 @@ BoardGameHub/
 │
 ├── frontend/               # Streamlit dashboard
 ├── docs/                   # Documentation (MkDocs)
-├── scripts/                # Utility scripts (FastMCP, database seeding)
-│   ├── boardgames_mcp.py   # FastMCP tool definition
-│   └── mcp_probe.py        # FastMCP testing script
-│
+├── scripts/                # Utility scripts (refresh, worker)
 ├── tests/                  # Pytest suite
 ├── Dockerfile              # Backend container
 ├── Dockerfile.frontend     # Frontend container
@@ -71,6 +89,7 @@ BoardGameHub/
 | POST   | `/auth/token`      | Login and get access token    |
 | GET    | `/boardgames/`     | List games (supports pagination & CSV) |
 | POST   | `/boardgames/`     | Create a new board game       |
+| POST   | `/boardgames/upload`| Bulk upload games from CSV    |
 | GET    | `/boardgames/{id}` | Retrieve a board game by ID   |
 | PUT    | `/boardgames/{id}` | Update an existing board game |
 | DELETE | `/boardgames/{id}` | Delete a board game           |
@@ -97,20 +116,17 @@ uv run streamlit run frontend/dashboard.py
 ```
 * Dashboard → [http://localhost:8501](http://localhost:8501)
 
----
-
-## 🤖 AI Agent Integration (FastMCP)
-
-This project includes a **FastMCP** tool that allows AI agents to query the board game database.
-
-**Run the tool:**
+### 🎯 Local Demo (Grader Version)
+This script walks you through the entire project flow (API + Frontend + Feature Demo):
 ```bash
-uv run python scripts/boardgames_mcp.py
+uv run python -m app.demo
 ```
 
-**Test the tool (Probe):**
+### 🛠️ CLI Database Management
+Use the CLI for administrative tasks like seeding sample data:
 ```bash
-uv run scripts/mcp_probe.py
+uv run python cli.py seed   # Seed with 5 sample games
+uv run python cli.py reset  # Wipe and recreate database
 ```
 
 ---
@@ -138,3 +154,7 @@ Build and run the entire system:
 ```bash
 docker compose up --build
 ```
+
+**Once running, access the services here:**
+*   **Dashboard**: [http://localhost:8501](http://localhost:8501)
+*   **API & Documentation**: [http://localhost:8000](http://localhost:8000) (auto-redirects to /docs)

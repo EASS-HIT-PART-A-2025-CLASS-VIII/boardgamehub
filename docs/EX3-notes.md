@@ -40,3 +40,24 @@ Security tests were added in `tests/test_security_jwt.py` to verify:
 - 401 Unauthorized for missing tokens.
 - 403 Forbidden for insufficient roles.
 - 401 Unauthorized for expired tokens.
+
+## 5. Async Component Trace
+The `scripts/refresh.py` sends up to 3 concurrent requests. The first succeeds (updates stats), and subsequent requests are skipped due to idempotency (Redis key `stats:daily:YYYY-MM-DD`).
+
+**Trace Output:**
+```
+API: http://localhost:8000
+Token endpoint: /auth/token
+Idempotency-Key: stats:daily:2026-02-10
+[1] {'status': 'updated', 'idempotency_key': 'stats:daily:2026-02-10', 'generated_at': '2026-02-10T12:37:51.178878+00:00', 'trace_id': 'refresh-script'}
+[2] {'status': 'already_done', 'idempotency_key': 'stats:daily:2026-02-10'}
+[3] {'status': 'already_done', 'idempotency_key': 'stats:daily:2026-02-10'}
+```
+
+## 6. Product Enhancement: CSV Upload
+We added a feature to **bulk upload board games via CSV**.
+- **Endpoint**: `POST /boardgames/upload`
+- **Frontend**: A dedicated upload section in the Dashboard.
+- **Optimization**: Uses bulk insert (`session.add_all`) and pre-fetches existing names to avoid N+1 queries.
+- **Testing**: Covered by `tests/test_upload.py`.
+

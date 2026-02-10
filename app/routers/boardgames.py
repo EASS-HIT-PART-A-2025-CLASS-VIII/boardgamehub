@@ -4,7 +4,7 @@ import json
 from io import StringIO
 from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, UploadFile, File
 from fastapi.responses import JSONResponse, StreamingResponse
 from sqlmodel import Session
 
@@ -12,6 +12,7 @@ from app.database import get_session
 from app import crud
 from app.models import BoardGame
 from app.schemas import BoardGameCreate, BoardGameRead, BoardGameUpdate
+from sqlmodel import select, func
 
 router = APIRouter(prefix="/boardgames", tags=["BoardGames"])
 
@@ -121,3 +122,97 @@ def delete_boardgame(boardgame_id: int, session: Session = Depends(get_session))
     if not ok:
         raise HTTPException(status_code=404, detail="Board game not found")
     return None
+
+
+@router.post("/upload", status_code=201)
+async def upload_boardgames(
+    file: UploadFile = File(...),
+    session: Session = Depends(get_session)
+):
+    """
+    Upload a CSV file containing board games data from BGG dataset.
+    """
+    if not file.filename.endswith(".csv"):
+        raise HTTPException(status_code=400, detail="Invalid file format. Please upload a CSV file.")
+
+    content = await file.read()
+    try:
+        # Decode bytes to string
+        decoded_content = content.decode("utf-8")
+        # Use StringIO to create file-like object for csv reader
+        csv_file = StringIO(decoded_content)
+        csv_reader = csv.DictReader(csv_file, delimiter=";")
+    except Exception:
+        raise HTTPException(status_code=400, detail="Could not parse CSV file.")
+
+    added_count = 0
+    errors = []
+
+    # Pre-fetch existing game names to avoid N+1 queries
+    # Using lowercase for case-insensitive comparison
+    existing_names_query = select(func.lower(BoardGame.name))
+    existing_names = set(session.exec(existing_names_query).all())
+
+    new_games = []
+
+    # Process rows
+    for row in csv_reader:
+        try:
+            name = row.get("Name")
+            if not name:
+                continue
+
+            name_lower = name.strip().lower()
+            if name_lower in existing_names:
+                continue
+            
+            # Add to local cache to prevent duplicates within the same CSV
+            existing_names.add(name_lower)
+
+            # Parse numeric fields with defaults
+            try:
+                year = int(row.get("Year Published")) if row.get("Year Published") else None
+                min_players = int(row.get("Min Players")) if row.get("Min Players") else 0
+                max_players = int(row.get("Max Players")) if row.get("Max Players") else 0
+                play_time = int(row.get("Play Time")) if row.get("Play Time") else 0
+                
+                # Handle comma decimal format 
+                complexity_str = row.get("Complexity Average", "0").replace(",", ".")
+                complexity = float(complexity_str) if complexity_str else 0.0
+                
+                rating_str = row.get("Rating Average", "0").replace(",", ".")
+                rating = float(rating_str) if rating_str else 0.0
+            except ValueError:
+                errors.append(f"Skipped row {row.get('ID', '?')}: Invalid numeric format")
+                continue
+
+            game = BoardGame(
+                name=name,
+                year_published=year,
+                min_players=min_players,
+                max_players=max_players,
+                play_time_min=play_time,
+                complexity=complexity,
+                rating=rating,
+                designer=None # Designer not in this CSV format
+            )
+            new_games.append(game)
+            added_count += 1
+            
+        except Exception as e:
+            errors.append(f"Error processing row {row.get('ID', 'unknown')}: {str(e)}")
+
+    # Bulk insert
+    try:
+        # Commit in chunks if necessary, but 20k rows is usually fine for one commit in typical SQL
+        # Using add_all is faster than individual adds
+        session.add_all(new_games)
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+    
+    return {
+        "message": f"Successfully added {added_count} games", 
+        "errors": errors[:10]  # Return first 10 errors to avoid huge response
+    }

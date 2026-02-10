@@ -17,35 +17,45 @@ STATS_SNAPSHOT_KEY = "stats:snapshot"
 IDEMPOTENCY_PREFIX = "idempotency:stats:"
 
 
-def _player_bucket(max_players: int) -> str:
-    if max_players <= 2:
+def _player_bucket(val: int | None) -> str:
+    if val is None:
         return "1-2"
-    if max_players <= 4:
+    if val <= 2:
+        return "1-2"
+    if val <= 4:
         return "3-4"
     return "5+"
 
 
 def _compute_snapshot(games) -> StatsSnapshot:
     total = len(games)
+    
+    # Filter for valid values
+    valid_ratings = [g.rating for g in games if g.rating is not None]
+    valid_complexities = [g.complexity for g in games if g.complexity is not None]
 
-    ratings = [g.rating for g in games if g.rating is not None]
-    complexities = [g.complexity for g in games if g.complexity is not None]
+    calc_avg_rating = (sum(valid_ratings) / len(valid_ratings)) if valid_ratings else 0.0
+    calc_avg_complexity = (sum(valid_complexities) / len(valid_complexities)) if valid_complexities else 0.0
 
-    player_counts: dict[str, int] = {"1-2": 0, "3-4": 0, "5+": 0}
+    player_counts = {"1-2": 0, "3-4": 0, "5+": 0}
     for g in games:
-        player_counts[_player_bucket(g.max_players)] += 1
+        bucket = _player_bucket(g.max_players)
+        player_counts[bucket] += 1
 
-    top = sorted(
-        [g for g in games if g.rating is not None],
-        key=lambda x: x.rating,
-        reverse=True,
-    )[:5]
-    top_items = [TopRatedItem(id=g.id, name=g.name, rating=float(g.rating)) for g in top]
+    # Top games by rating (must have rating)
+    valid_games_for_top = [g for g in games if g.rating is not None]
+    top = sorted(valid_games_for_top, key=lambda x: x.rating, reverse=True)[:5]
+    
+    top_items = []
+    for g in top:
+        top_items.append(
+            TopRatedItem(id=g.id, name=g.name, rating=float(g.rating))
+        )
 
     return StatsSnapshot(
         total_games=total,
-        avg_rating=(sum(ratings) / len(ratings)) if ratings else None,
-        avg_complexity=(sum(complexities) / len(complexities)) if complexities else None,
+        avg_rating=calc_avg_rating,
+        avg_complexity=calc_avg_complexity,
         player_range_counts=player_counts,
         top_rated=top_items,
         generated_at=datetime.now(timezone.utc),

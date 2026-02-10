@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
 
 from app.config import Settings
@@ -23,15 +24,26 @@ class LoginRequest(BaseModel):
 
 
 @router.post("/token", response_model=TokenResponse)
-def token(payload: LoginRequest, settings: Settings = Depends(get_settings)) -> TokenResponse:
-    if payload.username != settings.admin_username:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Bad credentials")
+def token(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    settings: Settings = Depends(get_settings),
+) -> TokenResponse:
+    if form_data.username != settings.admin_username:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Bad credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
-    if not verify_password(payload.password, settings.admin_password_hash):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Bad credentials")
+    if not verify_password(form_data.password, settings.admin_password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Bad credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
     token = create_access_token(
-        subject=payload.username,
+        subject=form_data.username,
         role="admin",
         settings=settings,
         expires_delta=timedelta(minutes=settings.jwt_access_token_minutes),

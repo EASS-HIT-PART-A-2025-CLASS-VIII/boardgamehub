@@ -13,7 +13,7 @@ import httpx
 @dataclass(frozen=True)
 class RefreshSettings:
     api_base_url: str = os.getenv("BOARDGAME_API_BASE_URL", "http://localhost:8000").rstrip("/")
-    timeout_s: float = float(os.getenv("REFRESH_TIMEOUT_S", "5"))
+    timeout_s: float = float(os.getenv("REFRESH_TIMEOUT_S", "60"))
     retries: int = int(os.getenv("REFRESH_RETRIES", "3"))
     concurrency: int = int(os.getenv("REFRESH_CONCURRENCY", "3"))
     trace_id: str = os.getenv("REFRESH_TRACE_ID", "refresh-script")
@@ -23,7 +23,7 @@ class RefreshSettings:
     # --- JWT login settings (KISS) ---
     token_path: str = os.getenv("REFRESH_TOKEN_PATH", "/auth/token")
     admin_username: str = os.getenv("BOARDGAME_ADMIN_USERNAME", "admin")
-    admin_password: str = os.getenv("BOARDGAME_ADMIN_PASSWORD", "classroom")
+    admin_password: str = os.getenv("BOARDGAME_ADMIN_PASSWORD", "admin123")
 
 
 async def _post_with_retries(
@@ -32,13 +32,14 @@ async def _post_with_retries(
     *,
     headers: dict[str, str] | None = None,
     json: dict[str, Any] | None = None,
+    data: dict[str, Any] | None = None,
     retries: int,
 ) -> dict[str, Any]:
     last_exc: Exception | None = None
 
     for attempt in range(1, retries + 1):
         try:
-            resp = await client.post(url, headers=headers, json=json)
+            resp = await client.post(url, headers=headers, json=json, data=data)
 
             # If FastAPI returns error - raise to trigger retry for 5xx/connection issues
             resp.raise_for_status()
@@ -69,7 +70,7 @@ async def _get_token(client: httpx.AsyncClient, settings: RefreshSettings) -> st
     data = await _post_with_retries(
         client,
         settings.token_path,
-        json={"username": settings.admin_username, "password": settings.admin_password},
+        data={"username": settings.admin_username, "password": settings.admin_password},
         retries=settings.retries,
     )
     token = data.get("access_token")
