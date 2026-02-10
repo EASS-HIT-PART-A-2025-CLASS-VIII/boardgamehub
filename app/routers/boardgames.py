@@ -53,7 +53,7 @@ def stream_as_csv(payload: dict) -> StreamingResponse:
 
 
 @router.get("/")
-@limiter.limit("5/minute")
+@limiter.limit("100/minute")
 def list_boardgames(
     request: Request,
     response: Response,
